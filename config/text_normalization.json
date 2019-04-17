@@ -1,0 +1,20 @@
+{
+  "text_replacements": [
+    {
+      "pattern": "</?[biu]>|\\[[0-9]\\]",
+      "replace": ""
+    },
+    {
+      "pattern": "([.?!])",
+      "replace": " \\1"
+    },
+    {
+      "pattern": "[^a-zA-Z.?!]",
+      "replace": " "
+    },
+    {
+      "pattern": "\\s+",
+      "replace": " "
+    }
+  ]
+}
