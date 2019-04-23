@@ -1,6 +1,4 @@
-import unicodedata
 from os import path
-import re
 from config_loading import RawDataProcessingConfig
 from text_normalization import TextNormalizer
 

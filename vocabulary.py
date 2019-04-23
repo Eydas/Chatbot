@@ -1,9 +1,23 @@
-class corpus_vocabulary:
-	def __init__(self):
-		self.words = {}
+import math
+from config_loading import VocabularyConfig
+
+class Vocabulary:
+	def __init__(self, lines):
+		self.config = VocabularyConfig()
+
+		self.words = {
+			self.config.start_of_sequence_token: math.inf,
+			self.config.end_of_sequence_token: math.inf,
+			self.config.unknown_word_token: math.inf
+		}
 		self.trimmed = False
-		self.trim_threshold = 3
-		
+
+		for line in lines:
+			self.add_line(line)
+		if self.config.trim_vocabulary:
+			self.trim_vocabulary()
+		self.finalize()
+
 	def add_word(self, word):
 		if word not in self.words:
 			self.words[word] = 1
@@ -18,7 +32,8 @@ class corpus_vocabulary:
 		if self.trimmed:
 			return
 		self.trimmed = True
-		self.words = {word: occurences for word, occurences in self.words.items() if occurences >= self.trim_threshold}
+		self.words = {word: occurences for word, occurences in self.words.items()
+					  if occurences >= self.config.inclusion_threshold}
 		
 	def finalize(self):
 		self._index_to_word = list(self.words.keys())

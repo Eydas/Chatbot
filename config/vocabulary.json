@@ -1,0 +1,7 @@
+{
+  "trim_vocabulary": true,
+  "inclusion_threshold": 3,
+  "start_of_sequence_token": "#SOS#",
+  "end_of_sequence_token": "#EOS#",
+  "unknown_word_token": "#UNK#"
+}

@@ -44,4 +44,41 @@ class RawDataProcessingConfig(JsonConfig):
 
     @property
     def conversation_separator(self):
-        return  self.get_property("conversation_separator")
+        return self.get_property("conversation_separator")
+
+class VocabularyConfig(JsonConfig):
+    CONFIG_FILENAME = 'vocabulary.json'
+
+    def __init__(self):
+        super(VocabularyConfig, self).__init__(VocabularyConfig.CONFIG_FILENAME)
+
+    @property
+    def inclusion_threshold(self):
+        return self.get_property("inclusion_threshold")
+
+    @property
+    def trim_vocabulary(self):
+        return self.get_property("trim_vocabulary")
+
+    @property
+    def start_of_sequence_token(self):
+        return self.get_property("start_of_sequence_token")
+
+    @property
+    def end_of_sequence_token(self):
+        return self.get_property("end_of_sequence_token")
+
+    @property
+    def unknown_word_token(self):
+        return self.get_property("unknown_word_token")
+
+
+class CorpusConfig(JsonConfig):
+    CONFIG_FILENAME = 'corpus.json'
+
+    def __init__(self):
+        super(CorpusConfig, self).__init__(CorpusConfig.CONFIG_FILENAME)
+
+    @property
+    def corpus_folder(self):
+        return self.get_property("corpus_folder")
