@@ -26,7 +26,7 @@ class CornellCorpusPreProcessor:
         self._conversations = [[]]
         self._conversations[0].append(self._lines[0])
         for i in range(1, len(self._lines)):
-            if self._lines[i].is_a_response_or_preemption_of(self._lines[i-1]):
+            if self._lines[i].is_a_response_or_query_of(self._lines[i-1]):
                 self._conversations[-1].append(self._lines[i])
             else:
                 self._conversations.append([self._lines[i]])
@@ -56,7 +56,7 @@ class CornellLineData:
         fields = line.split(" +++$+++ ")
         return CornellLineData(int(fields[0][1:]), int(fields[1][1:]), int(fields[2][1:]), fields[4])
 
-    def is_a_response_or_preemption_of(self, another_line):
+    def is_a_response_or_query_of(self, another_line):
         return self.movie_id == another_line.movie_id \
                and self.character_id != another_line.character_id \
                and (self.line_id == another_line.line_id + 1

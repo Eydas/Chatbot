@@ -3,18 +3,18 @@ from config_loading import VocabularyConfig
 
 class Vocabulary:
 	def __init__(self, lines):
-		self.config = VocabularyConfig()
+		self._config = VocabularyConfig()
 
 		self.words = {
-			self.config.start_of_sequence_token: math.inf,
-			self.config.end_of_sequence_token: math.inf,
-			self.config.unknown_word_token: math.inf
+			self._config.start_of_sequence_token: math.inf,
+			self._config.end_of_sequence_token: math.inf,
+			self._config.unknown_word_token: math.inf
 		}
-		self.trimmed = False
+		self._trimmed = False
 
 		for line in lines:
 			self.add_line(line)
-		if self.config.trim_vocabulary:
+		if self._config.trim_vocabulary:
 			self.trim_vocabulary()
 		self.finalize()
 
@@ -25,15 +25,15 @@ class Vocabulary:
 			self.words[word] += 1
 			
 	def add_line(self, line):
-		for word in line.split(' '):
+		for word in line.strip('\n').strip().split(' '):
 			self.add_word(word)
 	
 	def trim_vocabulary(self):
-		if self.trimmed:
+		if self._trimmed:
 			return
-		self.trimmed = True
+		self._trimmed = True
 		self.words = {word: occurences for word, occurences in self.words.items()
-					  if occurences >= self.config.inclusion_threshold}
+					  if occurences >= self._config.inclusion_threshold}
 		
 	def finalize(self):
 		self._index_to_word = list(self.words.keys())
@@ -47,4 +47,16 @@ class Vocabulary:
 		
 	def get_words(self):
 		return self._index_to_word
+
+	@property
+	def start_of_sequence_token_index(self):
+		return self.word_to_index(self._config.start_of_sequence_token)
+
+	@property
+	def end_of_sequence_token_index(self):
+		return self.word_to_index(self._config.end_of_sequence_token)
+
+	@property
+	def unknown_token_index(self):
+		return self.word_to_index(self._config.unknown_word_token)
 		
