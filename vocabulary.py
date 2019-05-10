@@ -8,7 +8,8 @@ class Vocabulary:
 		self.words = {
 			self._config.start_of_sequence_token: math.inf,
 			self._config.end_of_sequence_token: math.inf,
-			self._config.unknown_word_token: math.inf
+			self._config.unknown_word_token: math.inf,
+			self._config.pad_token: math.inf
 		}
 		self._trimmed = False
 
@@ -59,4 +60,8 @@ class Vocabulary:
 	@property
 	def unknown_token_index(self):
 		return self.word_to_index(self._config.unknown_word_token)
+
+	@property
+	def pad_token_index(self):
+		return self.word_to_index(self._config.pad_token)
 		

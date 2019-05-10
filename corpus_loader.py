@@ -68,5 +68,6 @@ if __name__ == "__main__":
 	#for pair in data:
 	#	lengths.append(len(pair[0].split(" ")))
 	#	lengths.append(len(pair[1].split(" ")))
+	#print(list(sorted(lengths)))
 	print(vocab.word_to_index("#UNK#"))
 	

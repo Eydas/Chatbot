@@ -72,6 +72,10 @@ class VocabularyConfig(JsonConfig):
     def unknown_word_token(self):
         return self.get_property("unknown_word_token")
 
+    @property
+    def pad_token(self):
+        return self.get_property("pad_token")
+
 
 class CorpusConfig(JsonConfig):
     CONFIG_FILENAME = 'corpus.json'

@@ -1,5 +1,8 @@
 # Chatbot project-specific
 data/*
+!data/.gitkeep
+!data/raw/.gitkeep
+!data/corpus/.gitkeep
 .idea/
 *.iml
 

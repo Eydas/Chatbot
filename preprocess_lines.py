@@ -6,7 +6,7 @@ RAW_DATA_FOLDER = "./data/raw/cornell_movie_dialogues"
 RAW_DATA_FILENAME = "movie_lines.txt"
 
 OUTPUT_CORPUS_FOLDER = "./data/corpus"
-OUTPUT_CORPUS_FILENAME = "movie_lines_processed.txt"
+OUTPUT_CORPUS_FILENAME = "cornell_movies.txt"
 
 
 LINE_MAX_ALLOWED_LENGTH = 20
@@ -14,7 +14,7 @@ LINE_MAX_ALLOWED_LENGTH = 20
 
 class CornellCorpusPreProcessor:
     def __init__(self, raw_data_filepath):
-        with open(raw_data_filepath, 'r') as raw_data_file:
+        with open(raw_data_filepath, 'r', encoding='iso-8859-1') as raw_data_file:
             raw_data = raw_data_file.readlines()
         self._lines = [CornellLineData.from_line(raw_line) for raw_line in raw_data]
         text_normalizer = TextNormalizer()
