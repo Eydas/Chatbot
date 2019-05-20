@@ -6,10 +6,10 @@ class Vocabulary:
 		self._config = VocabularyConfig()
 
 		self.words = {
+			self._config.pad_token: math.inf,
 			self._config.start_of_sequence_token: math.inf,
 			self._config.end_of_sequence_token: math.inf,
-			self._config.unknown_word_token: math.inf,
-			self._config.pad_token: math.inf
+			self._config.unknown_word_token: math.inf
 		}
 		self._trimmed = False
 

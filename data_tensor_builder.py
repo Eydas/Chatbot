@@ -1,17 +1,34 @@
 import torch
 from corpus_loader import Corpus, CORPUS_FILE
 
-class DataTensorBuilder:
-    def __init__(self, corpus):
-        self._corpus = corpus
-        self._vocabulary = corpus.vocabulary
-        input_seqs, output_seqs = zip(*corpus.seqs_data)
-        self._input_seqs_max_length = max([len(input_seq.split(' ')) for input_seq in input_seqs])
-        self._output_seqs_max_length = max([len(output_seq.split(' ')) for output_seq in output_seqs])
+class BatchTensorBuilder:
+    def __init__(self, seqs_pair_batch, vocabulary):
+        self._vocabulary = vocabulary
+        input_seqs, output_seqs = zip(*seqs_pair_batch)
+
+        self._input_lengths = self._build_lengths_tensor(input_seqs)
+        self._input_seqs_max_length = self._get_tensor_required_length(self._input_lengths)
+
+        self.test_mask = self._build_seq_mask_tensor(self._input_lengths[0].item(), self._input_seqs_max_length)
+
+        self._target_lengths = self._build_lengths_tensor(output_seqs)
+        self._target_seqs_max_length = self._get_tensor_required_length(self._target_lengths)
 
         self._input_seqs_tensor = self._build_seqs_list_tensor(input_seqs, self._input_seqs_max_length)
-        self._output_seqs_tensor = self._build_seqs_list_tensor(output_seqs, self._output_seqs_max_length)
+        self._target_seqs_tensor = self._build_seqs_list_tensor(output_seqs, self._target_seqs_max_length)
 
+
+    def _get_seqs_length(self, sequence):
+        # Length of sequence includes the "End of Sequence token", hence the "+ 1"
+        return len(sequence.split(' ')) + 1
+
+
+    def _build_lengths_tensor(self, seqs_list):
+        return torch.cat([torch.tensor([self._get_seqs_length(seq)]) for seq in seqs_list])
+
+
+    def _get_tensor_required_length(self, lengths_tensor):
+        return lengths_tensor.max().item()
 
 
     def _build_token_tensor(self, word):
@@ -19,6 +36,7 @@ class DataTensorBuilder:
             return torch.tensor([self._vocabulary.unknown_token_index])
         else:
             return torch.tensor([self._vocabulary.word_to_index(word)])
+
 
     def _zero_pad_sequence(self, sequence_tensor_list, required_seq_length):
         pad_length = required_seq_length - len(sequence_tensor_list)
@@ -31,20 +49,43 @@ class DataTensorBuilder:
                          + [torch.tensor([self._vocabulary.end_of_sequence_token_index])], required_seq_length)
         return torch.cat(tensor_list)
 
+
     def _build_seqs_list_tensor(self, seqs_list, required_seq_length):
         return torch.stack([self._build_sequence_tensor(seq, required_seq_length) for seq in seqs_list])
 
-    @property
-    def input_seqs_tensor(self):
-        return self._input_seqs_tensor
+    def _build_seq_mask_tensor(self, seq_length, required_seq_length):
+        pad_length = required_seq_length - seq_length
+        return torch.cat((torch.ones(seq_length), torch.zeros(pad_length)))
+
+    def _build_seqs_mask_tensor(self, lengths_tensor, required_seq_length):
+        pass
+
 
     @property
-    def output_seqs_tensor(self):
-        return self._output_seqs_tensor
+    def input_lengths(self):
+        return self._input_lengths
+
+
+    @property
+    def target_lengths(self):
+        return self._target_lengths
+
+
+    @property
+    def input_seqs_tensor(self):
+        return self._input_seqs_tensor.transpose(0, 1)
+
+
+    @property
+    def target_seqs_tensor(self):
+        return self._target_seqs_tensor.transpose(0, 1)
 
 
 if __name__ == "__main__":
     corpus = Corpus(CORPUS_FILE)
-    tensor_builder = DataTensorBuilder(corpus)
-    print(tensor_builder.input_seqs_tensor)
-    #print(embedder.embed_sentence(data[0][0]))
+    tensor_builder = BatchTensorBuilder(corpus.seqs_data[:5], corpus.vocabulary)
+    print(tensor_builder.test_mask)
+    #print(tensor_builder.input_seqs_tensor)
+    #print(tensor_builder.input_lengths)
+    #print(tensor_builder.target_seqs_tensor)
+    #print(tensor_builder.target_lengths)

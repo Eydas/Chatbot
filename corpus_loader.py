@@ -20,7 +20,7 @@ class Corpus:
 
 	def _get_lines_from_file(self):
 		with open(self._data_filepath, 'r') as corpus_file:
-			return [line.strip('\n') for line in corpus_file.readlines()]
+			return [line.strip('\n').strip() for line in corpus_file.readlines()]
 
 	def _get_dialogue_lists(self):
 		seperator_indices = [i for i, line in enumerate(self._file_lines) if line == self._conversation_separator]
