@@ -1,12 +1,12 @@
 from os import path
-from config_loading import RawDataProcessingConfig
 from text_normalization import TextNormalizer
+import json
 
 RAW_DATA_FOLDER = "./data/raw/cornell_movie_dialogues"
 RAW_DATA_FILENAME = "movie_lines.txt"
 
 OUTPUT_CORPUS_FOLDER = "./data/corpus"
-OUTPUT_CORPUS_FILENAME = "cornell_movies.txt"
+OUTPUT_CORPUS_FILENAME = "cornell_movies.json"
 
 
 LINE_MAX_ALLOWED_LENGTH = 20
@@ -43,6 +43,11 @@ class CornellCorpusPreProcessor:
     def conversations(self):
         return self._conversations
 
+    @property
+    def conversation_lists(self):
+        return [[line.line for line in conversation]
+                for conversation in self._conversations]
+
 
 class CornellLineData:
     def __init__(self, line_id, character_id, movie_id, line):
@@ -68,12 +73,9 @@ class CornellLineData:
 
 def process_lines(input_filepath, output_filepath):
     lines_data_obj = CornellCorpusPreProcessor(input_filepath)
-    output_text = ("\n" + RawDataProcessingConfig().conversation_separator + "\n").join(
-        ["\n".join([line_data.line for line_data in conversation])
-         for conversation in lines_data_obj.conversations])
 
     with open(output_filepath, 'w') as outfile:
-        outfile.write(output_text)
+        json.dump(lines_data_obj.conversation_lists, outfile)
 
 if __name__ == "__main__":
     process_lines(path.join(RAW_DATA_FOLDER, RAW_DATA_FILENAME), path.join(OUTPUT_CORPUS_FOLDER, OUTPUT_CORPUS_FILENAME))

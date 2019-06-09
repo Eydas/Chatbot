@@ -9,13 +9,13 @@ class BatchTensorBuilder:
         self._input_lengths = self._build_lengths_tensor(input_seqs)
         self._input_seqs_max_length = self._get_tensor_required_length(self._input_lengths)
 
-        self.test_mask = self._build_seq_mask_tensor(self._input_lengths[0].item(), self._input_seqs_max_length)
-
         self._target_lengths = self._build_lengths_tensor(output_seqs)
         self._target_seqs_max_length = self._get_tensor_required_length(self._target_lengths)
 
         self._input_seqs_tensor = self._build_seqs_list_tensor(input_seqs, self._input_seqs_max_length)
         self._target_seqs_tensor = self._build_seqs_list_tensor(output_seqs, self._target_seqs_max_length)
+
+        self._masks = self._build_seqs_mask_tensor(self._target_lengths, self._target_seqs_max_length)
 
 
     def _get_seqs_length(self, sequence):
@@ -58,8 +58,8 @@ class BatchTensorBuilder:
         return torch.cat((torch.ones(seq_length), torch.zeros(pad_length)))
 
     def _build_seqs_mask_tensor(self, lengths_tensor, required_seq_length):
-        pass
-
+        return torch.stack([self._build_seq_mask_tensor(seq_length.item(), required_seq_length)
+                            for seq_length in lengths_tensor])
 
     @property
     def input_lengths(self):
@@ -80,11 +80,16 @@ class BatchTensorBuilder:
     def target_seqs_tensor(self):
         return self._target_seqs_tensor.transpose(0, 1)
 
+    @property
+    def masks(self):
+        return self._masks.transpose(0, 1)
+
 
 if __name__ == "__main__":
     corpus = Corpus(CORPUS_FILE)
     tensor_builder = BatchTensorBuilder(corpus.seqs_data[:5], corpus.vocabulary)
-    print(tensor_builder.test_mask)
+    print(tensor_builder.target_seqs_tensor)
+    print(tensor_builder.masks)
     #print(tensor_builder.input_seqs_tensor)
     #print(tensor_builder.input_lengths)
     #print(tensor_builder.target_seqs_tensor)

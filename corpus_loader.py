@@ -1,36 +1,33 @@
 from os import path
 from vocabulary import Vocabulary
-from config_loading import RawDataProcessingConfig, CorpusConfig
+from config_loading import CorpusConfig
+import json
+import itertools
 
-CORPUS_FILE = "cornell_movies.txt"
+CORPUS_FILE = "cornell_movies.json"
 
 class Corpus:
 
 	def __init__(self, data_filename):
 		self._corpus_config = CorpusConfig()
-		self._conversation_separator = RawDataProcessingConfig().conversation_separator
 		self._data_filepath = path.join(self._corpus_config.corpus_folder, data_filename)
 
-		self._file_lines = self._get_lines_from_file()
-		self._dialogue_lines = [line for line in self._file_lines if line !=self._conversation_separator]
 		self._dialogues = self._get_dialogue_lists()
-		self._vocabulary = Vocabulary(self._dialogue_lines)
+		self._all_lines = list(itertools.chain.from_iterable(self._dialogues))
+
+		self._vocabulary = Vocabulary(self._all_lines)
 		self._seqs_data = self._build_seqs_pairs()
 
-
-	def _get_lines_from_file(self):
+	def _get_all_lines_from_file(self):
 		with open(self._data_filepath, 'r') as corpus_file:
 			return [line.strip('\n').strip() for line in corpus_file.readlines()]
 
 	def _get_dialogue_lists(self):
-		seperator_indices = [i for i, line in enumerate(self._file_lines) if line == self._conversation_separator]
-		splits = [self._file_lines[:seperator_indices[0]]]
-		for i in range(len(seperator_indices)-1):
-			first = seperator_indices[i] + 1
-			last = seperator_indices[i+1]
-			splits.append(self._file_lines[first:last])
-		splits.append(self._file_lines[seperator_indices[-1]+1:])
-		return splits
+		with open(self._data_filepath, 'r') as corpus_file:
+			line_lists = json.load(corpus_file)
+			line_lists = [[line.strip('\n').strip() for line in line_list]
+					for line_list in line_lists]
+			return line_lists
 	
 	def _build_seqs_pairs(self):
 		seqs_pairs = []
@@ -64,10 +61,11 @@ if __name__ == "__main__":
 	corpus = Corpus(CORPUS_FILE)
 	data = corpus.seqs_data
 	vocab = corpus.vocabulary
+	print(vocab.get_words())
 	#lengths = []
 	#for pair in data:
 	#	lengths.append(len(pair[0].split(" ")))
 	#	lengths.append(len(pair[1].split(" ")))
 	#print(list(sorted(lengths)))
-	print(vocab.word_to_index("#UNK#"))
+	#print(vocab.word_to_index("#UNK#"))
 	

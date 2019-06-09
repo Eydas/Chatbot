@@ -36,16 +36,6 @@ class TextNormalizationConfig(JsonConfig):
             return TextNormalizationConfig.ReplacementObject(replacement_dict['pattern'], replacement_dict['replace'])
 
 
-class RawDataProcessingConfig(JsonConfig):
-    CONFIG_FILENAME = 'raw_data_processing.json'
-
-    def __init__(self):
-        super(RawDataProcessingConfig, self).__init__(RawDataProcessingConfig.CONFIG_FILENAME)
-
-    @property
-    def conversation_separator(self):
-        return self.get_property("conversation_separator")
-
 class VocabularyConfig(JsonConfig):
     CONFIG_FILENAME = 'vocabulary.json'
 
