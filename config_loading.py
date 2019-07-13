@@ -1,6 +1,8 @@
 import json
 from os import path
 
+# TODO: Automatic validation of config values
+
 class Config:
 
     def get_property(self, property_name):
@@ -76,3 +78,38 @@ class CorpusConfig(JsonConfig):
     @property
     def corpus_folder(self):
         return self.get_property("corpus_folder")
+
+
+class EncoderConfig(JsonConfig):
+    CONFIG_FILENAME = 'encoder.json'
+
+    def __init__(self):
+        super(EncoderConfig, self).__init__(EncoderConfig.CONFIG_FILENAME)
+
+    @property
+    def rnn_type(self):
+        return self.get_property("rnn_type")
+
+    @property
+    def bidirectional(self):
+        return self.get_property("bidirectional")
+
+    @property
+    def num_layers(self):
+        return self.get_property("num_layers")
+
+    @property
+    def hidden_size(self):
+        return self.get_property("hidden_size")
+
+    @property
+    def bias(self):
+        return self.get_property("bias")
+
+    @property
+    def dropout_enabled(self):
+        return self.get_property("dropout_enabled")
+
+    @property
+    def dropout_probability(self):
+        return self.get_property("dropout_probability")

@@ -50,6 +50,10 @@ class Vocabulary:
 		return self._index_to_word
 
 	@property
+	def size(self):
+		return len(self._index_to_word)
+
+	@property
 	def start_of_sequence_token_index(self):
 		return self.word_to_index(self._config.start_of_sequence_token)
 
