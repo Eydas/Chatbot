@@ -58,10 +58,11 @@ class Corpus:
 
 	
 if __name__ == "__main__":
-	corpus = Corpus(CORPUS_FILE)
-	data = corpus.seqs_data
-	vocab = corpus.vocabulary
-	print(vocab.get_words())
+	#corpus = Corpus(CORPUS_FILE)
+	#data = corpus.seqs_data
+	#vocab = corpus.vocabulary
+	vocab = Vocabulary.load('vocab_save_test.json')
+	print(vocab._index_to_word)
 	#lengths = []
 	#for pair in data:
 	#	lengths.append(len(pair[0].split(" ")))
