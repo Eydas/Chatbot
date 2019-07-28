@@ -15,7 +15,8 @@ class Corpus:
 		self._dialogues = self._get_dialogue_lists()
 		self._all_lines = list(itertools.chain.from_iterable(self._dialogues))
 
-		self._vocabulary = Vocabulary(self._all_lines)
+		self._vocabulary = Vocabulary()
+		self._vocabulary.add_lines(self._all_lines)
 		self._seqs_data = self._build_seqs_pairs()
 
 	def _get_all_lines_from_file(self):
@@ -58,11 +59,13 @@ class Corpus:
 
 	
 if __name__ == "__main__":
-	#corpus = Corpus(CORPUS_FILE)
+	corpus = Corpus(CORPUS_FILE)
 	#data = corpus.seqs_data
-	#vocab = corpus.vocabulary
-	vocab = Vocabulary.load('vocab_save_test.json')
+	vocab = corpus.vocabulary
+	vocab.save('vocab_save_test.json')
+	vocab2 = Vocabulary.load('vocab_save_test.json')
 	print(vocab._index_to_word)
+	print(vocab2._index_to_word)
 	#lengths = []
 	#for pair in data:
 	#	lengths.append(len(pair[0].split(" ")))

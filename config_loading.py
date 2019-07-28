@@ -54,19 +54,35 @@ class VocabularyConfig(JsonConfig):
 
     @property
     def start_of_sequence_token(self):
-        return self.get_property("start_of_sequence_token")
+        return self.get_property("start_of_sequence_token")["token"]
+
+    @property
+    def start_of_sequence_index(self):
+        return self.get_property("start_of_sequence_token")["index"]
 
     @property
     def end_of_sequence_token(self):
-        return self.get_property("end_of_sequence_token")
+        return self.get_property("end_of_sequence_token")["token"]
 
     @property
-    def unknown_word_token(self):
-        return self.get_property("unknown_word_token")
+    def end_of_sequence_index(self):
+        return self.get_property("end_of_sequence_token")["index"]
+
+    @property
+    def unknown_token(self):
+        return self.get_property("unknown_token")["token"]
+
+    @property
+    def unknown_index(self):
+        return self.get_property("unknown_token")["index"]
 
     @property
     def pad_token(self):
-        return self.get_property("pad_token")
+        return self.get_property("pad_token")["token"]
+
+    @property
+    def pad_index(self):
+        return self.get_property("pad_token")["index"]
 
 
 class CorpusConfig(JsonConfig):
