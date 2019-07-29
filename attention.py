@@ -5,16 +5,18 @@ from math import sqrt
 
 class Attention(nn.Module):
     def __init__(self, score_type, project, context_size, query_size, key_size, value_size):
+        super(Attention, self).__init__()
+
         self._score_func = {
             'dot': self._dot_score,
-            'additive': self._concat_score,
+            'additive': self._additive_score,
             'general': self._general_score,
             'scaled_dot': self._scaled_dot_score
         }[score_type]
 
         self._init_params_func = {
             'dot': self._init_dot_params,
-            'additive': self._init_concat_params,
+            'additive': self._init_additive_params,
             'general': self._init_general_params,
             'scaled_dot': self._init_scaled_dot_params
         }[score_type]
@@ -23,12 +25,17 @@ class Attention(nn.Module):
         self._context_size = context_size
         self._query_size = query_size
         self._key_size = key_size
-        self._value_size =value_size
+        self._value_size = value_size
 
         self._init_params()
 
 
     def forward(self, query, keys, values):
+        # transpose to batch major
+        query = torch.transpose(query, 0, 1)
+        keys = torch.transpose(keys, 0, 1)
+        values = torch.transpose(values, 0, 1)
+
         if self._project:
             query_projected = self._query_projection(query)
             keys_projected = self._key_projection(keys)
@@ -52,7 +59,8 @@ class Attention(nn.Module):
 
 
     def _init_additive_params(self):
-        self._additive_projection = nn.Linear(2 * self._context_size, self._context_size)
+        self._additive_projection_matrix = nn.Linear(2 * self._context_size, self._context_size)
+        self._additive_projection_vector = nn.Parameter(torch.FloatTensor(self._context_size))
 
 
     def _init_general_params(self):
@@ -64,16 +72,11 @@ class Attention(nn.Module):
 
 
     def _apply_alignments(self, alignments, values):
-        result = functional.softmax(alignments, dim=0)
+        result = functional.softmax(alignments, dim=1)
 
-        # transpose to batch major, for batch matmul
-        result = torch.transpose(result, (0, 1))
-        values = torch.transpose(values, (0, 1))
-
-        result = torch.bmm(result, values)
-
-        # get rid of time dimension
-        result = result.squeeze(1)
+        # Compute context vector
+        result = result.unsqueeze(dim=1)
+        result = result.bmm(values)
 
         return result
 
@@ -84,7 +87,9 @@ class Attention(nn.Module):
 
 
     def _additive_score(self, query, keys, values):
-        alignments = nn.tanh(self._additive_projection(nn.concat([query, keys], dim=2)))
+        alignments = torch.cat([query.expand(-1, keys.shape[1], -1), keys], dim=2)
+        alignments = self._additive_projection_matrix(alignments).tanh()
+        alignments = torch.sum(self._additive_projection_vector * alignments, dim=2)
         return self._apply_alignments(alignments, values)
 
 
@@ -96,4 +101,14 @@ class Attention(nn.Module):
     def _scaled_dot_score(self, query, keys, values):
         result = self._dot_score(query, keys, values)
         return result / sqrt(self._key_size)
+
+
+if __name__ == "__main__":
+    query = torch.tensor([[[2, 3], [4, 5]]]).type(torch.float32)
+    keys = torch.tensor([[[4, 2], [1, 1]], [[4, 3], [2, 2]]]).type(torch.float32)
+    values = torch.tensor([[[4, 2], [1, 1]], [[4, 3], [2, 2]]]).type(torch.float32)
+    attn = Attention('additive', False, 2, 2, 2, 2)
+    res = attn(query, keys, values)
+    print(res.shape)
+    print(res)
 

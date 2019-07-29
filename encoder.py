@@ -56,6 +56,11 @@ class Encoder(nn.Module):
             rnn_final_state, _ = rnn_final_state
 
         #TODO: Deal with bidirectional and number of layers? Or keep as is?
+        if self._config.bidirectional:
+            rnn_final_state = rnn_final_state.view(self._config.num_layers, 2, rnn_final_state.shape[1], rnn_final_state.shape[2])
+            # sum forwards and backwards final states. TODO: Add option to leave concatenated
+            rnn_final_state = rnn_final_state[:,0,:,:] + rnn_final_state[:,1,:,:]
+
         return rnn_final_state
 
 if __name__ == '__main__':
