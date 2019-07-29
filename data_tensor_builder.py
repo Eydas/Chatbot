@@ -32,10 +32,10 @@ class BatchTensorBuilder:
 
 
     def _build_token_tensor(self, word):
-        if word not in self._vocabulary.words:
-            return torch.tensor([self._vocabulary.unknown_token_index])
-        else:
+        if self._vocabulary.is_word_known(word):
             return torch.tensor([self._vocabulary.word_to_index(word)])
+        else:
+            return torch.tensor([self._vocabulary.unknown_token_index])
 
 
     def _zero_pad_sequence(self, sequence_tensor_list, required_seq_length):

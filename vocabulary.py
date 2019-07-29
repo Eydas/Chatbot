@@ -17,32 +17,32 @@ class Vocabulary:
 																		self._config.unknown_token,
 																		None)
 		}
-		self.finalize()
+		self._finalize()
 
 
 	def add_lines(self, lines):
 		self._trimmed = False
 
 		for line in lines:
-			self.add_line(line)
+			self._add_line(line)
 		if self._config.trim_vocabulary:
-			self.trim_vocabulary()
-		self.finalize()
+			self._trim_vocabulary()
+		self._finalize()
 
 
-	def add_word(self, word):
+	def _add_word(self, word):
 		if word not in self._words:
 			self._words[word] = self._create_token_listing(len(self._words), word, 1)
 		else:
 			self._words[word]['occurences'] += 1
 
 
-	def add_line(self, line):
+	def _add_line(self, line):
 		for word in line.strip('\n').strip().split(' '):
-			self.add_word(word)
+			self._add_word(word)
 
 
-	def trim_vocabulary(self):
+	def _trim_vocabulary(self):
 		if self._trimmed:
 			return
 		self._trimmed = True
@@ -50,9 +50,13 @@ class Vocabulary:
 					   if data['occurences'] is None or data['occurences'] >= self._config.inclusion_threshold}
 
 
-	def finalize(self):
+	def _finalize(self):
 		self._index_to_word = [data['token'] for data in list(sorted(self._words.values(), key=lambda x: x['index']))]
 		self._word_to_index = {word: index for index, word in enumerate(self._index_to_word)}
+
+
+	def is_word_known(self, word):
+		return word in self._words
 
 
 	def index_to_word(self, index):
@@ -88,7 +92,7 @@ class Vocabulary:
 		loaded_vocab._words = {
 			data['token']: data for data in json_data
 		}
-		loaded_vocab.finalize()
+		loaded_vocab._finalize()
 		loaded_vocab._trimmed = True
 
 		return loaded_vocab
