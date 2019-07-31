@@ -73,8 +73,7 @@ class Attention(nn.Module):
 
 
     def _apply_alignments(self, alignments, values):
-        #result = functional.softmax(alignments, dim=1)
-        result = alignments
+        result = functional.softmax(alignments, dim=1)
 
         # Compute context vector
         result = result.unsqueeze(dim=1)

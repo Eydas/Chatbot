@@ -11,23 +11,30 @@ class Encoder(nn.Module):
         'LSTM': nn.LSTM
     }
 
-    def __init__(self):
+    def __init__(self, embedding, training):
         super(Encoder, self).__init__()
         self._config = EncoderConfig()
+        self._training = training
+
+        self._embedding = embedding
 
         self._rnn = Encoder.RNN_FACTORY[self._config.rnn_type](
-            input_size = self._config.hidden_size,#TODO: This should be embedding_size
+            input_size = self._embedding.embedding_size,
             hidden_size = self._config.hidden_size,
             num_layers = self._config.num_layers,
             bidirectional = self._config.bidirectional,
-            bias = self._config.bias,
-            dropout = (self._config.dropout_probability if self._config.dropout_enabled else 0)
+            bias = self._config.rnn_bias,
+            dropout = (self._config.dropout_probability
+                       if self._training and self._config.dropout_enabled
+                       else 0)
         )
 
 
     def forward(self, input_seqs, input_lengths, initial_hidden_state = None):
+        embedded_input = self._embedding(input_seqs)
+
         # Why shouldn't the batch be first? Also, enforce_sorted may be more efficient
-        packed_input_seqs = nn.utils.rnn.pack_padded_sequence(input_seqs,
+        packed_input_seqs = nn.utils.rnn.pack_padded_sequence(embedded_input,
                                                               input_lengths,
                                                               batch_first=False,
                                                               enforce_sorted=False)
@@ -64,12 +71,13 @@ class Encoder(nn.Module):
         return rnn_final_state
 
 if __name__ == '__main__':
+    from embedding import Embedding
     corpus = Corpus(CORPUS_FILE)
     tensor_builder = BatchTensorBuilder(corpus.seqs_data[:5], corpus.vocabulary)
     input_seqs = tensor_builder.input_seqs_tensor
     input_lengths = tensor_builder.input_lengths
-    encoder = Encoder()
-    input_seqs = nn.Embedding(num_embeddings=corpus.vocabulary.size,embedding_dim=encoder._config.hidden_size)(input_seqs)
+    embedding = Embedding(corpus.vocabulary)
+    encoder = Encoder(embedding)
     encoder_outputs, final_hidden_state = encoder(input_seqs, input_lengths)
     print(encoder_outputs.shape)
     print(final_hidden_state.shape)

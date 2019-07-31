@@ -96,6 +96,17 @@ class CorpusConfig(JsonConfig):
         return self.get_property("corpus_folder")
 
 
+class EmbeddingConfig(JsonConfig):
+    CONFIG_FILENAME = 'embedding.json'
+
+    def __init__(self):
+        super(EmbeddingConfig, self).__init__(EmbeddingConfig.CONFIG_FILENAME)
+
+    @property
+    def embedding_size(self):
+        return self.get_property("embedding_size")
+
+
 class EncoderConfig(JsonConfig):
     CONFIG_FILENAME = 'encoder.json'
 
@@ -119,8 +130,59 @@ class EncoderConfig(JsonConfig):
         return self.get_property("hidden_size")
 
     @property
-    def bias(self):
-        return self.get_property("bias")
+    def rnn_bias(self):
+        return self.get_property("rnn_bias")
+
+    @property
+    def dropout_enabled(self):
+        return self.get_property("dropout_enabled")
+
+    @property
+    def dropout_probability(self):
+        return self.get_property("dropout_probability")
+
+
+class DecoderConfig(JsonConfig):
+    CONFIG_FILENAME = 'decoder.json'
+
+    def __init__(self):
+        super(DecoderConfig, self).__init__(DecoderConfig.CONFIG_FILENAME)
+
+    @property
+    def max_decoding_steps(self):
+        return self.get_property("max_decoding_steps")
+
+    @property
+    def attention_mechanism(self):
+        return self.get_property("attention_mechanism")
+
+    @property
+    def attention_score(self):
+        return self.get_property("attention_score")
+
+    @property
+    def attention_projection(self):
+        return self.get_property("attention_projection")
+
+    @property
+    def context_size(self):
+        return self.get_property("context_size")
+
+    @property
+    def rnn_type(self):
+        return self.get_property("rnn_type")
+
+    @property
+    def num_layers(self):
+        return self.get_property("num_layers")
+
+    @property
+    def hidden_size(self):
+        return self.get_property("hidden_size")
+
+    @property
+    def rnn_bias(self):
+        return self.get_property("rnn_bias")
 
     @property
     def dropout_enabled(self):
