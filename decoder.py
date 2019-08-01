@@ -1,8 +1,9 @@
-from config_loading import EncoderConfig, DecoderConfig
+from config_loading import EncoderConfig, DecoderConfig, AttentionConfig
 from attention import Attention
 import torch
 from torch import nn
 from torch.nn import functional
+import numpy as np
 
 class Decoder(nn.Module):
 
@@ -12,6 +13,7 @@ class Decoder(nn.Module):
         'LSTM': nn.LSTM
     }
 
+
     def __init__(self, embedding, training):
         super(Decoder, self).__init__()
         self._config = DecoderConfig()
@@ -19,6 +21,7 @@ class Decoder(nn.Module):
 
         self._key_size = EncoderConfig().hidden_size
         self._value_size = self._key_size
+        self._context_size = AttentionConfig().context_size
 
         self._embedding = embedding
 
@@ -27,10 +30,7 @@ class Decoder(nn.Module):
             'luong': self._luong_step
         }[self._config.attention_mechanism]
 
-        self._attention = Attention(score_type = self._config.attention_score,
-                                    project = self._config.attention_projection,
-                                    context_size = self._config.context_size,
-                                    query_size = self._config.hidden_size,
+        self._attention = Attention(query_size = self._config.hidden_size,
                                     key_size = self._key_size,
                                     value_size = self._value_size)
 
@@ -40,19 +40,27 @@ class Decoder(nn.Module):
             num_layers = self._config.num_layers,
             bidirectional = False,
             bias = self._config.rnn_bias,
-            dropout = (self._config.dropout_probability if self._training and self._config.dropout_enabled else 0)
+            dropout = (self._config.rnn_dropout_probability
+                       if self._training and self._config.rnn_dropout_enabled
+                       else 0)
         )
 
-        self._mlp = nn.Linear(self._config.hidden_size, self._embedding.vocabulary.size)
+        self._mlp = nn.Sequential(
+            nn.Linear(self._config.hidden_size + self._context_size, self._config.hidden_size),
+            nn.Tanh(),
+            nn.Linear(self._config.hidden_size, self._embedding.vocabulary.size)
+        )
+
 
     def forward(self, encoder_outputs, encoder_final_state, targets = None):
         if self._training:
             assert targets is not None
-            decoding_steps = targets.shape[0] - 1
+            decoding_steps = targets.shape[0]
         else:
             decoding_steps = self._config.max_decoding_steps
 
-        last_decoder_output = torch.tensor([self._embedding.vocabulary.start_of_sequence_index])
+        last_decoder_output = torch.tensor([self._embedding.vocabulary.start_of_sequence_token_index
+                                             for _ in range(targets.shape[1])])
         # TODO: Next line won't work if Encoder and Decoder RNN types don't match
         last_decoder_hidden_state = encoder_final_state
         decoder_outputs = []
@@ -63,7 +71,9 @@ class Decoder(nn.Module):
                                                                                 encoder_outputs)
             decoder_outputs.append(last_decoder_output)
             # TODO: Teacher forcing here
+            last_decoder_output = torch.tensor(torch.argmax(last_decoder_output, dim=1))
 
+        decoder_outputs = torch.stack(decoder_outputs, dim=1)
         return decoder_outputs
 
 
@@ -78,12 +88,32 @@ class Decoder(nn.Module):
 
         # remove time dim from rnn_output and context vector
         rnn_output = rnn_output.squeeze(0)
-        context_vector = context.squeeze(1)
+        context = context.squeeze(1)
 
         # MLP on concatenated rnn output and context vector to produce softmax probabilities over tokens
         concat_input = torch.cat((rnn_output, context), 1)
-        concat_activated = torch.tanh(self.concat(concat_input))
-        output = self._mlp(concat_activated)
+        output = self._mlp(concat_input)
         output = functional.softmax(output, dim=1)
 
         return output, rnn_hidden_state
+
+
+if __name__ == "__main__":
+    from corpus_loader import CORPUS_FILE, Corpus
+    from data_tensor_builder import BatchTensorBuilder
+    from embedding import Embedding
+    from encoder import Encoder
+    corpus = Corpus(CORPUS_FILE)
+    tensor_builder = BatchTensorBuilder(corpus.seqs_data[:5], corpus.vocabulary)
+    input_seqs = tensor_builder.input_seqs_tensor
+    input_lengths = tensor_builder.input_lengths
+    target_seqs = tensor_builder.target_seqs_tensor
+    embedding = Embedding(corpus.vocabulary)
+    encoder = Encoder(embedding, training=True)
+    encoder_outputs, encoder_final_hidden_state = encoder(input_seqs, input_lengths)
+    decoder = Decoder(embedding, training=True)
+    decoder_outputs = decoder(encoder_outputs, encoder_final_hidden_state, target_seqs)
+    print(decoder_outputs.shape)
+    print(target_seqs.shape)
+    print(decoder_outputs)
+

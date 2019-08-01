@@ -142,6 +142,34 @@ class EncoderConfig(JsonConfig):
         return self.get_property("dropout_probability")
 
 
+class AttentionConfig(JsonConfig):
+    CONFIG_FILENAME = 'attention.json'
+
+    def __init__(self):
+        super(AttentionConfig, self).__init__(AttentionConfig.CONFIG_FILENAME)
+
+    @property
+    def score(self):
+        return self.get_property("score")
+
+    @property
+    def context_size(self):
+        return self.get_property("context_size")
+
+    @property
+    def project_query(self):
+        return self.get_property("project_query")
+
+    @property
+    def project_keys(self):
+        return self.get_property("project_keys")
+
+    @property
+    def project_values(self):
+        return self.get_property("project_values")
+
+
+
 class DecoderConfig(JsonConfig):
     CONFIG_FILENAME = 'decoder.json'
 
@@ -155,18 +183,6 @@ class DecoderConfig(JsonConfig):
     @property
     def attention_mechanism(self):
         return self.get_property("attention_mechanism")
-
-    @property
-    def attention_score(self):
-        return self.get_property("attention_score")
-
-    @property
-    def attention_projection(self):
-        return self.get_property("attention_projection")
-
-    @property
-    def context_size(self):
-        return self.get_property("context_size")
 
     @property
     def rnn_type(self):
@@ -185,9 +201,9 @@ class DecoderConfig(JsonConfig):
         return self.get_property("rnn_bias")
 
     @property
-    def dropout_enabled(self):
-        return self.get_property("dropout_enabled")
+    def rnn_dropout_enabled(self):
+        return self.get_property("rnn_dropout_enabled")
 
     @property
-    def dropout_probability(self):
-        return self.get_property("dropout_probability")
+    def rnn_dropout_probability(self):
+        return self.get_property("rnn_dropout_probability")

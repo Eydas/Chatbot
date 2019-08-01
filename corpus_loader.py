@@ -18,10 +18,13 @@ class Corpus:
 		self._vocabulary = Vocabulary()
 		self._vocabulary.add_lines(self._all_lines)
 		self._seqs_data = self._build_seqs_pairs()
+		self._seqs_data = self._filter_pairs_with_unknown_words_in_target()
+
 
 	def _get_all_lines_from_file(self):
 		with open(self._data_filepath, 'r') as corpus_file:
 			return [line.strip('\n').strip() for line in corpus_file.readlines()]
+
 
 	def _get_dialogue_lists(self):
 		with open(self._data_filepath, 'r') as corpus_file:
@@ -29,7 +32,8 @@ class Corpus:
 			line_lists = [[line.strip('\n').strip() for line in line_list]
 					for line_list in line_lists]
 			return line_lists
-	
+
+
 	def _build_seqs_pairs(self):
 		seqs_pairs = []
 		for dialogue in self._dialogues:
@@ -37,21 +41,19 @@ class Corpus:
 				seqs_pairs.append([dialogue[i], dialogue[i+1]])
 		return seqs_pairs
 
-	"""
-	def common_words_only(line, vocabulary):
-		words = line.split(' ')
-		for word in words:
-			if word not in vocabulary.words:
-				return False
-		return True
 
-	def filter_pairs_with_uncommon_words(pairs, vocabulary):
-		return list(filter(lambda pair: common_words_only(pair[0], vocabulary) and common_words_only(pair[1], vocabulary) , pairs))
-	"""
+	def _known_words_only(self, line):
+		return all(self._vocabulary.is_word_known(word) for word in line.split(' '))
+
+
+	def _filter_pairs_with_unknown_words_in_target(self):
+		return list(filter(lambda pair: self._known_words_only(pair[1]), self._seqs_data))
+
 
 	@property
 	def vocabulary(self):
 		return self._vocabulary
+
 
 	@property
 	def seqs_data(self):
@@ -61,11 +63,10 @@ class Corpus:
 if __name__ == "__main__":
 	corpus = Corpus(CORPUS_FILE)
 	#data = corpus.seqs_data
-	vocab = corpus.vocabulary
-	vocab.save('vocab_save_test.json')
-	vocab2 = Vocabulary.load('vocab_save_test.json')
-	print(vocab._index_to_word)
-	print(vocab2._index_to_word)
+	#vocab = corpus.vocabulary
+	#vocab.save('vocab_save_test.json')
+	#vocab2 = Vocabulary.load('vocab_save_test.json')
+	print(len(corpus.seqs_data))
 	#lengths = []
 	#for pair in data:
 	#	lengths.append(len(pair[0].split(" ")))

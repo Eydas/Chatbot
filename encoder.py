@@ -77,7 +77,7 @@ if __name__ == '__main__':
     input_seqs = tensor_builder.input_seqs_tensor
     input_lengths = tensor_builder.input_lengths
     embedding = Embedding(corpus.vocabulary)
-    encoder = Encoder(embedding)
+    encoder = Encoder(embedding, training=True)
     encoder_outputs, final_hidden_state = encoder(input_seqs, input_lengths)
     print(encoder_outputs.shape)
     print(final_hidden_state.shape)

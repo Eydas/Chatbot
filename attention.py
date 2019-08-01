@@ -2,27 +2,28 @@ import torch
 from torch import nn
 from torch.nn import functional
 from math import sqrt
+from config_loading import AttentionConfig
 
 class Attention(nn.Module):
-    def __init__(self, score_type, project, context_size, query_size, key_size, value_size):
+    def __init__(self, query_size, key_size, value_size):
         super(Attention, self).__init__()
+
+        self._config = AttentionConfig()
 
         self._score_func = {
             'dot': self._dot_score,
             'additive': self._additive_score,
             'general': self._general_score,
             'scaled_dot': self._scaled_dot_score
-        }[score_type]
+        }[self._config.score]
 
         self._init_params_func = {
             'dot': self._init_dot_params,
             'additive': self._init_additive_params,
             'general': self._init_general_params,
             'scaled_dot': self._init_scaled_dot_params
-        }[score_type]
+        }[self._config.score]
 
-        self._project = project
-        self._context_size = context_size
         self._query_size = query_size
         self._key_size = key_size
         self._value_size = value_size
@@ -36,20 +37,33 @@ class Attention(nn.Module):
         keys = torch.transpose(keys, 0, 1)
         values = torch.transpose(values, 0, 1)
 
-        if self._project:
+        if self._config.project_query:
             query_projected = self._query_projection(query)
-            keys_projected = self._key_projection(keys)
-            value_projected = self._value_projection(values)
-            return self._score_func(query_projected, keys_projected, value_projected)
         else:
-            return self._score_func(query, keys, values)
+            query_projected = query
+
+        if self._config.project_keys:
+            keys_projected = self._key_projection(keys)
+        else:
+            keys_projected = keys
+
+        if self._config.project_values:
+            value_projected = self._value_projection(values)
+        else:
+            value_projected = values
+
+        return self._score_func(query_projected, keys_projected, value_projected)
 
 
     def _init_params(self):
-        if self._project:
-            self._query_projection = nn.Linear(self._query_size, self._context_size)
-            self._key_projection = nn.Linear(self._key_size, self._context_size)
-            self._value_projection = nn.Linear(self._value_size, self._context_size)
+        if self._config.project_query:
+            self._query_projection = nn.Linear(self._query_size, self._config.context_size)
+
+        if self._config.project_keys:
+            self._key_projection = nn.Linear(self._key_size, self._config.context_size)
+
+        if self._config.project_values:
+            self._value_projection = nn.Linear(self._value_size, self._config.context_size)
 
         self._init_params_func()
 
@@ -59,13 +73,13 @@ class Attention(nn.Module):
 
 
     def _init_additive_params(self):
-        self._additive_projection_matrix = nn.Linear(2 * self._context_size, self._context_size)
+        self._additive_projection_matrix = nn.Linear(2 * self._config.context_size, self._config.context_size)
         # TODO: ensure tensor is saved on GPU when running with CUDA
-        self._additive_projection_vector = nn.Parameter(torch.FloatTensor(self._context_size))
+        self._additive_projection_vector = nn.Parameter(torch.FloatTensor(self._config.context_size))
 
 
     def _init_general_params(self):
-        self._general_projection = nn.Linear(self._context_size, self._context_size, bias=None)
+        self._general_projection = nn.Linear(self._config.context_size, self._config.context_size, bias=None)
 
 
     def _init_scaled_dot_params(self):
@@ -122,7 +136,7 @@ if __name__ == "__main__":
     values = torch.tensor([[[4, 2], [1, 1]], [[4, 3], [2, 2]]]).type(torch.float32)
 
 
-    attn = Attention('additive', False, 2, 2, 2, 2)
+    attn = Attention(2, 2, 2)
     weights = torch.tensor([[1, 1, 1, 1], [1, 1, 1, 1]]).type(torch.float32)
     bias = torch.tensor([-12, -11]).type(torch.float32)
     v = torch.tensor([1, 1]).type(torch.float32)

@@ -1,13 +1,10 @@
 {
   "max_decoding_steps": 50,
   "attention_mechanism": "luong",
-  "attention_score": "dot",
-  "attention_projection": false,
-  "context_size": 256,
   "rnn_type": "GRU",
   "hidden_size": 256,
   "num_layers": 3,
   "rnn_bias": true,
-  "dropout_enabled": true,
-  "dropout_probability": 0.1
+  "rnn_dropout_enabled": true,
+  "rnn_dropout_probability": 0.1
 }
