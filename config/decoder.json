@@ -1,6 +1,6 @@
 {
   "max_decoding_steps": 50,
-  "attention_mechanism": "luong",
+  "attention_mechanism": "bahdanau",
   "rnn_type": "GRU",
   "hidden_size": 256,
   "num_layers": 3,

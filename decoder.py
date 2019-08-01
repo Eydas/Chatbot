@@ -34,8 +34,18 @@ class Decoder(nn.Module):
                                     key_size = self._key_size,
                                     value_size = self._value_size)
 
+        rnn_input_size = {
+            'bahdanau': self._embedding.embedding_size + self._context_size,
+            'luong': self._embedding.embedding_size
+        }[self._config.attention_mechanism]
+
+        mlp_input_size = {
+            'bahdanau': self._embedding.embedding_size + self._config.hidden_size + self._context_size,
+            'luong': self._embedding.embedding_size + self._context_size
+        }[self._config.attention_mechanism]
+
         self._rnn = Decoder.RNN_FACTORY[self._config.rnn_type](
-            input_size = self._embedding.embedding_size,
+            input_size = rnn_input_size,
             hidden_size = self._config.hidden_size,
             num_layers = self._config.num_layers,
             bidirectional = False,
@@ -46,7 +56,7 @@ class Decoder(nn.Module):
         )
 
         self._mlp = nn.Sequential(
-            nn.Linear(self._config.hidden_size + self._context_size, self._config.hidden_size),
+            nn.Linear(mlp_input_size, self._config.hidden_size),
             nn.Tanh(),
             nn.Linear(self._config.hidden_size, self._embedding.vocabulary.size)
         )
@@ -78,7 +88,22 @@ class Decoder(nn.Module):
 
 
     def _bahdanau_step(self, last_decoder_output, last_decoder_hidden_state, encoder_outputs):
-        return None, None
+        last_output_embedded = self._embedding(last_decoder_output).unsqueeze(0)
+        query = last_decoder_hidden_state[-1].unsqueeze(0)
+        context = self._attention(query, encoder_outputs, encoder_outputs)
+
+        # remove time dim from rnn_output and context vector
+        last_output_embedded = last_output_embedded.squeeze(0)
+        context = context.squeeze(1)
+
+        rnn_input = torch.cat((last_output_embedded, context), -1)
+        rnn_output, rnn_hidden_state = self._rnn(rnn_input, last_decoder_hidden_state)
+
+        mlp_input = torch.cat((last_output_embedded, rnn_output, context), -1)
+        output = self._mlp(mlp_input)
+        output = functional.softmax(output, dim=1)
+
+        return output, rnn_hidden_state
 
 
     def _luong_step(self, last_decoder_output, last_decoder_hidden_state, encoder_outputs):
