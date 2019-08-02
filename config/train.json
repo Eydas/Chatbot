@@ -1,6 +1,7 @@
 {
   "optimizer": "adam",
   "learning_rate": 0.001,
+  "batch_size": 5,
   "use_gradient_clipping": true,
   "gradient_clipping_value": 1.0
 }

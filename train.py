@@ -2,14 +2,15 @@ from torch import nn, optim
 from config_loading import TrainConfig
 from modules.model import Model
 from modules.loss import masked_nll_loss
-from data_loading.data_tensor_builder import BatchTensorBuilder
+#from data_loading.data_tensor_builder import BatchTensorBuilder
+from data_loading.corpus import CorpusDataset
 import logging
 
 class Train:
-    def __init__(self, corpus):
+    def __init__(self, corpus_dataset):
         self._config = TrainConfig()
-        self._feeder = BatchTensorBuilder(corpus.seqs_data, corpus.vocabulary)
-        self._model = Model(vocabulary = corpus.vocabulary, training = True)
+        self._data_loader = corpus_dataset.get_data_loader(self._config.batch_size)
+        self._model = Model(vocabulary = corpus_dataset.vocabulary, training = True)
         self._loss = masked_nll_loss
         self._optimizer = optim.Adam(self._model.parameters(), lr=self._config.learning_rate)
         self._global_step = 0
@@ -17,7 +18,6 @@ class Train:
         self._train_logger = logging.getLogger('Train')
         self._train_logger.setLevel(logging.INFO)
 
-        #logging.getLogger().setLevel(logging.INFO)
 
     def train_step(self, input_seqs, input_lengths, target_seqs, masks):
         self._optimizer.zero_grad()
@@ -36,12 +36,18 @@ class Train:
         self._optimizer.step()
 
     def train(self, num_steps):
-        for i in range(num_steps):
-            self._global_step = i
-            self.train_step(self._feeder.input_seqs_tensor, self._feeder.input_lengths, self._feeder.target_seqs_tensor, self._feeder.masks)
+        self._global_step = 0
+        while True:
+            for input_seqs, input_lengths, target_seqs, masks in self._data_loader:
+                self.train_step(input_seqs, input_lengths, target_seqs, masks)
+                self._global_step += 1
+                if self._global_step >= num_steps:
+                    break
 
 
 if __name__ == "__main__":
-    from data_loading.corpus_loader import CORPUS_FILE, Corpus
-    train_obj = Train(Corpus(CORPUS_FILE))
+    from data_loading.corpus_loader import CORPUS_FILE
+    from os import path
+    corpus_filepath = path.join('./data/corpus', CORPUS_FILE)
+    train_obj = Train(CorpusDataset(corpus_filepath))
     train_obj.train(1000)
