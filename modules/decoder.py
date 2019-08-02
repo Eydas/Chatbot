@@ -1,6 +1,6 @@
 from config_loading import EncoderConfig, DecoderConfig, AttentionConfig
-from attention import Attention
-from teacher_forcing import TeacherForcing
+from modules.attention import Attention
+from utils.teacher_forcing import TeacherForcing
 import torch
 from torch import nn
 from torch.nn import functional
@@ -88,11 +88,9 @@ class Decoder(nn.Module):
             if self._training and self._teacher_forcing.enabled \
                     and random() < self._teacher_forcing.get_current_ratio(global_step):
                 last_decoder_output = targets[i]
-                print("Teacher forcing: {}".format(last_decoder_output))
             else:
                 # Greedy decoding. Are there other ways?
                 last_decoder_output = torch.argmax(last_decoder_output, dim=1)
-                print("Not teacher forcing: {}".format(last_decoder_output))
 
         decoder_outputs = torch.stack(decoder_outputs, dim=1)
         return decoder_outputs

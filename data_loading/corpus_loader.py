@@ -1,5 +1,5 @@
 from os import path
-from vocabulary import Vocabulary
+from data_loading.vocabulary import Vocabulary
 from config_loading import CorpusConfig
 import json
 import itertools

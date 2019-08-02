@@ -1,5 +1,5 @@
 import torch
-from corpus_loader import Corpus, CORPUS_FILE
+from data_loading.corpus_loader import Corpus, CORPUS_FILE
 
 class BatchTensorBuilder:
     def __init__(self, seqs_pair_batch, vocabulary):

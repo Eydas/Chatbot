@@ -1,16 +1,5 @@
-from os import path
-from text_normalization import TextNormalizer
+from utils.text_normalization import TextNormalizer
 import json
-
-RAW_DATA_FOLDER = "./data/raw/cornell_movie_dialogues"
-RAW_DATA_FILENAME = "movie_lines.txt"
-
-OUTPUT_CORPUS_FOLDER = "./data/corpus"
-OUTPUT_CORPUS_FILENAME = "cornell_movies.json"
-
-
-LINE_MAX_ALLOWED_LENGTH = 20
-
 
 class CornellCorpusPreProcessor:
     def __init__(self, raw_data_filepath):
@@ -71,11 +60,8 @@ class CornellLineData:
         return self.line
 
 
-def process_lines(input_filepath, output_filepath):
+def process_cornell_data(input_filepath, output_filepath):
     lines_data_obj = CornellCorpusPreProcessor(input_filepath)
 
     with open(output_filepath, 'w') as outfile:
         json.dump(lines_data_obj.conversation_lists, outfile)
-
-if __name__ == "__main__":
-    process_lines(path.join(RAW_DATA_FOLDER, RAW_DATA_FILENAME), path.join(OUTPUT_CORPUS_FOLDER, OUTPUT_CORPUS_FILENAME))

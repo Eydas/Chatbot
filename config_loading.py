@@ -243,6 +243,29 @@ class TeacherForcingConfig(JsonConfig):
     def decay_end_step(self):
         return self.get_property("decay_end_step")
 
+
+class TrainConfig(JsonConfig):
+    CONFIG_FILENAME = 'train.json'
+
+    def __init__(self):
+        super(TrainConfig, self).__init__(TrainConfig.CONFIG_FILENAME)
+
     @property
-    def decay_rate(self):
-        return self.get_property("decay_rate")
+    def optimizer(self):
+        return self.get_property("optimizer")
+
+    @property
+    def learning_rate(self):
+        return self.get_property("learning_rate")
+
+    @property
+    def batch_size(self):
+        return self.get_property("batch_size")
+
+    @property
+    def use_gradient_clipping(self):
+        return self.get_property("use_gradient_clipping")
+
+    @property
+    def gradient_clipping_value(self):
+        return self.get_property("gradient_clipping_value")

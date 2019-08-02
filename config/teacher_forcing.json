@@ -5,6 +5,5 @@
   "decay_start_ratio": 1.0,
   "decay_end_ratio": 0.7,
   "decay_start_step": 5000,
-  "decay_end_step": 15000,
-  "decay_rate": 0.96
+  "decay_end_step": 15000
 }

@@ -1,7 +1,7 @@
 from torch import nn
-from embedding import Embedding
-from encoder import Encoder
-from decoder import Decoder
+from modules.embedding import Embedding
+from modules.encoder import Encoder
+from modules.decoder import Decoder
 
 class Model(nn.Module):
     def __init__(self, vocabulary, training):
@@ -17,9 +17,9 @@ class Model(nn.Module):
 
 
 if __name__ == "__main__":
-    from corpus_loader import CORPUS_FILE, Corpus
-    from data_tensor_builder import BatchTensorBuilder
-    from loss import masked_nll_loss
+    from data_loading.corpus_loader import CORPUS_FILE, Corpus
+    from data_loading.data_tensor_builder import BatchTensorBuilder
+    from modules.loss import masked_nll_loss
     corpus = Corpus(CORPUS_FILE)
     tensor_builder = BatchTensorBuilder(corpus.seqs_data[:5], corpus.vocabulary)
     input_seqs = tensor_builder.input_seqs_tensor
