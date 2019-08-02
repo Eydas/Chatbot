@@ -81,7 +81,7 @@ class Decoder(nn.Module):
                                                                                 encoder_outputs)
             decoder_outputs.append(last_decoder_output)
             # TODO: Teacher forcing here
-            last_decoder_output = torch.tensor(torch.argmax(last_decoder_output, dim=1))
+            last_decoder_output = torch.argmax(last_decoder_output, dim=1)
 
         decoder_outputs = torch.stack(decoder_outputs, dim=1)
         return decoder_outputs
@@ -92,12 +92,16 @@ class Decoder(nn.Module):
         query = last_decoder_hidden_state[-1].unsqueeze(0)
         context = self._attention(query, encoder_outputs, encoder_outputs)
 
-        # remove time dim from rnn_output and context vector
-        last_output_embedded = last_output_embedded.squeeze(0)
-        context = context.squeeze(1)
+        # change context shape to time major for RNN
+        context = torch.transpose(context, 0, 1)
 
         rnn_input = torch.cat((last_output_embedded, context), -1)
         rnn_output, rnn_hidden_state = self._rnn(rnn_input, last_decoder_hidden_state)
+
+        # remove time dim from embedded rnn input, rnn_output and context vector
+        last_output_embedded = last_output_embedded.squeeze(0)
+        rnn_output = rnn_output.squeeze(0)
+        context = context.squeeze(0)
 
         mlp_input = torch.cat((last_output_embedded, rnn_output, context), -1)
         output = self._mlp(mlp_input)
@@ -121,24 +125,4 @@ class Decoder(nn.Module):
         output = functional.softmax(output, dim=1)
 
         return output, rnn_hidden_state
-
-
-if __name__ == "__main__":
-    from corpus_loader import CORPUS_FILE, Corpus
-    from data_tensor_builder import BatchTensorBuilder
-    from embedding import Embedding
-    from encoder import Encoder
-    corpus = Corpus(CORPUS_FILE)
-    tensor_builder = BatchTensorBuilder(corpus.seqs_data[:5], corpus.vocabulary)
-    input_seqs = tensor_builder.input_seqs_tensor
-    input_lengths = tensor_builder.input_lengths
-    target_seqs = tensor_builder.target_seqs_tensor
-    embedding = Embedding(corpus.vocabulary)
-    encoder = Encoder(embedding, training=True)
-    encoder_outputs, encoder_final_hidden_state = encoder(input_seqs, input_lengths)
-    decoder = Decoder(embedding, training=True)
-    decoder_outputs = decoder(encoder_outputs, encoder_final_hidden_state, target_seqs)
-    print(decoder_outputs.shape)
-    print(target_seqs.shape)
-    print(decoder_outputs)
 

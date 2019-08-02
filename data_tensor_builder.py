@@ -55,7 +55,7 @@ class BatchTensorBuilder:
 
     def _build_seq_mask_tensor(self, seq_length, required_seq_length):
         pad_length = required_seq_length - seq_length
-        return torch.cat((torch.ones(seq_length), torch.zeros(pad_length)))
+        return torch.cat((torch.ones(seq_length).byte(), torch.zeros(pad_length).byte()))
 
     def _build_seqs_mask_tensor(self, lengths_tensor, required_seq_length):
         return torch.stack([self._build_seq_mask_tensor(seq_length.item(), required_seq_length)
