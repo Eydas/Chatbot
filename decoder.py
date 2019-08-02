@@ -1,9 +1,10 @@
 from config_loading import EncoderConfig, DecoderConfig, AttentionConfig
 from attention import Attention
+from teacher_forcing import TeacherForcing
 import torch
 from torch import nn
 from torch.nn import functional
-import numpy as np
+from random import random
 
 class Decoder(nn.Module):
 
@@ -61,10 +62,12 @@ class Decoder(nn.Module):
             nn.Linear(self._config.hidden_size, self._embedding.vocabulary.size)
         )
 
+        self._teacher_forcing = TeacherForcing()
 
-    def forward(self, encoder_outputs, encoder_final_state, targets = None):
+
+    def forward(self, encoder_outputs, encoder_final_state, targets = None, global_step = -1):
         if self._training:
-            assert targets is not None
+            assert targets is not None and global_step >= 0
             decoding_steps = targets.shape[0]
         else:
             decoding_steps = self._config.max_decoding_steps
@@ -80,8 +83,16 @@ class Decoder(nn.Module):
                                                                                 last_decoder_hidden_state,
                                                                                 encoder_outputs)
             decoder_outputs.append(last_decoder_output)
-            # TODO: Teacher forcing here
-            last_decoder_output = torch.argmax(last_decoder_output, dim=1)
+
+            # Teacher forcing
+            if self._training and self._teacher_forcing.enabled \
+                    and random() < self._teacher_forcing.get_current_ratio(global_step):
+                last_decoder_output = targets[i]
+                print("Teacher forcing: {}".format(last_decoder_output))
+            else:
+                # Greedy decoding. Are there other ways?
+                last_decoder_output = torch.argmax(last_decoder_output, dim=1)
+                print("Not teacher forcing: {}".format(last_decoder_output))
 
         decoder_outputs = torch.stack(decoder_outputs, dim=1)
         return decoder_outputs

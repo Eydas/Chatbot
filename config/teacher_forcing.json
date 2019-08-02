@@ -1,0 +1,10 @@
+{
+  "use_teacher_forcing": true,
+  "ratio_type": "decay",
+  "fixed_ratio": 0.75,
+  "decay_start_ratio": 1.0,
+  "decay_end_ratio": 0.7,
+  "decay_start_step": 5000,
+  "decay_end_step": 15000,
+  "decay_rate": 0.96
+}

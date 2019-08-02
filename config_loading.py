@@ -207,3 +207,42 @@ class DecoderConfig(JsonConfig):
     @property
     def rnn_dropout_probability(self):
         return self.get_property("rnn_dropout_probability")
+
+
+class TeacherForcingConfig(JsonConfig):
+    CONFIG_FILENAME = 'teacher_forcing.json'
+
+    def __init__(self):
+        super(TeacherForcingConfig, self).__init__(TeacherForcingConfig.CONFIG_FILENAME)
+
+    @property
+    def use_teacher_forcing(self):
+        return self.get_property("use_teacher_forcing")
+
+    @property
+    def ratio_type(self):
+        return self.get_property("ratio_type")
+
+    @property
+    def fixed_ratio(self):
+        return self.get_property("fixed_ratio")
+
+    @property
+    def decay_start_ratio(self):
+        return self.get_property("decay_start_ratio")
+
+    @property
+    def decay_end_ratio(self):
+        return self.get_property("decay_end_ratio")
+
+    @property
+    def decay_start_step(self):
+        return self.get_property("decay_start_step")
+
+    @property
+    def decay_end_step(self):
+        return self.get_property("decay_end_step")
+
+    @property
+    def decay_rate(self):
+        return self.get_property("decay_rate")

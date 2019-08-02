@@ -11,9 +11,9 @@ class Model(nn.Module):
         self._encoder = Encoder(embedding = self._embedding, training = training)
         self._decoder = Decoder(embedding = self._embedding, training = training)
 
-    def forward(self, input_seqs, input_lengths, target_seqs):
+    def forward(self, input_seqs, input_lengths, target_seqs, global_step = -1):
         encoder_outputs, encoder_final_hidden_state = self._encoder(input_seqs, input_lengths)
-        return self._decoder(encoder_outputs, encoder_final_hidden_state, target_seqs)
+        return self._decoder(encoder_outputs, encoder_final_hidden_state, target_seqs, global_step)
 
 
 if __name__ == "__main__":
@@ -26,7 +26,6 @@ if __name__ == "__main__":
     input_lengths = tensor_builder.input_lengths
     target_seqs = tensor_builder.target_seqs_tensor
     model = Model(corpus.vocabulary, training=True)
-    decoder_outputs = model(input_seqs, input_lengths, target_seqs)
+    decoder_outputs = model(input_seqs, input_lengths, target_seqs, 0)
     step_loss = masked_nll_loss(decoder_outputs, target_seqs, tensor_builder.masks)
-    print(step_loss.shape)
     print(step_loss)
