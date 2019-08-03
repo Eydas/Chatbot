@@ -42,6 +42,10 @@ class CorpusDataset(Dataset):
 
         masks = self._build_seqs_mask_tensor(target_lengths, target_seqs_max_length)
 
+        input_seqs_tensor = torch.transpose(input_seqs_tensor, 0, 1)
+        target_seqs_tensor = torch.transpose(target_seqs_tensor, 0, 1)
+        masks = torch.transpose(masks, 0, 1)
+
         return input_seqs_tensor, input_lengths, target_seqs_tensor, masks
 
 
