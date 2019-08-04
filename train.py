@@ -2,7 +2,6 @@ import torch
 from torch import nn, optim
 from config_loading import TrainConfig
 from modules.model import Model
-from modules.loss import masked_nll_loss
 from os import path, makedirs
 from data_loading.corpus import CorpusDataset
 import logging
@@ -14,7 +13,7 @@ class Train:
         self._data_loader = corpus_dataset.get_data_loader(self._config.batch_size)
         self._vocabulary = corpus_dataset.vocabulary
         self._model = Model(vocabulary = corpus_dataset.vocabulary, training = True)
-        self._loss = masked_nll_loss
+        # TODO: Support for other optimizers
         self._optimizer = optim.Adam(self._model.parameters(), lr=self._config.learning_rate)
         self._global_step = -1
 
@@ -24,14 +23,12 @@ class Train:
 
     def train_step(self, input_seqs, input_lengths, target_seqs, masks):
         self._optimizer.zero_grad()
-        decoder_outputs = self._model(input_seqs, input_lengths, target_seqs, self._global_step)
-        step_loss = self._loss(decoder_outputs, target_seqs, masks)
+        step_loss, print_loss, _ = self._model(input_seqs, input_lengths, target_seqs, masks,  self._global_step)
 
-        self._train_logger.info('Step {}:  Training loss: {}'.format(self._global_step, step_loss.item()))
+        self._train_logger.info('Step {}:  Training loss: {}'.format(self._global_step, print_loss))
 
         step_loss.backward()
 
-        # TODO: Gradient clipping HERE
         if self._config.use_gradient_clipping:
             _ = nn.utils.clip_grad_norm_(self._model.parameters(), self._config.gradient_clipping_value)
 
@@ -82,6 +79,7 @@ class Train:
             }, save_path)
         logging.info('Checkpoint saved at {}'.format(save_path))
 
+
     @staticmethod
     def load_from_checkpoint(checkpoint_path, corpus_dataset):
         checkpoint = torch.load(checkpoint_path)
@@ -101,6 +99,6 @@ if __name__ == "__main__":
     corpus_filepath = path.join('./data/corpus', CORPUS_FILE)
     save_folder = '/media/Work/data/Chatbot/models/train_dev'
     train_obj = Train("train_dev", CorpusDataset(corpus_filepath))
-    train_obj.train(num_steps = 4000, save_num_steps = 500, save_folder = save_folder)
-    #train_obj = Train.load_from_checkpoint(path.join(save_folder, 'checkpoint-20.tar'), CorpusDataset(corpus_filepath))
+    train_obj.train(num_steps = 15, save_num_steps = 10, save_folder = save_folder)
+    #train_obj = Train.load_from_checkpoint(path.join(save_folder, 'checkpoint-10.tar'), CorpusDataset(corpus_filepath))
     #train_obj.train(num_steps= 20, save_num_steps= 10, save_folder = save_folder)

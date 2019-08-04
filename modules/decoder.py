@@ -65,35 +65,8 @@ class Decoder(nn.Module):
         self._teacher_forcing = TeacherForcing()
 
 
-    def forward(self, encoder_outputs, encoder_final_state, targets = None, global_step = -1):
-        if self._training:
-            assert targets is not None and global_step >= 0
-            decoding_steps = targets.shape[0]
-        else:
-            decoding_steps = self._config.max_decoding_steps
-
-        last_decoder_output = torch.tensor([self._embedding.vocabulary.start_of_sequence_token_index
-                                             for _ in range(targets.shape[1])])
-        # TODO: Next line won't work if Encoder and Decoder RNN types don't match
-        last_decoder_hidden_state = encoder_final_state
-        decoder_outputs = []
-
-        for i in range(decoding_steps):
-            last_decoder_output, last_decoder_hidden_state = self._forward_step(last_decoder_output,
-                                                                                last_decoder_hidden_state,
-                                                                                encoder_outputs)
-            decoder_outputs.append(last_decoder_output)
-
-            # Teacher forcing
-            if self._training and self._teacher_forcing.enabled \
-                    and random() < self._teacher_forcing.get_current_ratio(global_step):
-                last_decoder_output = targets[i]
-            else:
-                # Greedy decoding. Are there other ways?
-                last_decoder_output = torch.argmax(last_decoder_output, dim=1)
-
-        decoder_outputs = torch.stack(decoder_outputs, dim=1)
-        return decoder_outputs
+    def forward(self, last_decoder_output, last_decoder_hidden_state, encoder_outputs):
+        return self._forward_step(last_decoder_output, last_decoder_hidden_state, encoder_outputs)
 
 
     def _bahdanau_step(self, last_decoder_output, last_decoder_hidden_state, encoder_outputs):

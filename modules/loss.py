@@ -1,7 +1,7 @@
 import torch
 
 def masked_nll_loss(softmax_probs, targets, mask):
-    target_probs = torch.gather(torch.transpose(softmax_probs, 0, 1), 2, targets.unsqueeze(2)).squeeze(2)
+    target_probs = torch.gather(softmax_probs, 1, targets.view(-1, 1)).squeeze(1)
     crossEntropy = -torch.log(target_probs)
     loss = crossEntropy.masked_select(mask).mean()
-    return loss
+    return loss, mask.sum().item()

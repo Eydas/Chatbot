@@ -1,8 +1,5 @@
 from torch import nn
 from config_loading import EncoderConfig
-from data_loading.corpus_loader import Corpus, CORPUS_FILE
-from data_loading.data_tensor_builder import BatchTensorBuilder
-
 
 class Encoder(nn.Module):
 
@@ -70,6 +67,7 @@ class Encoder(nn.Module):
 
         return rnn_final_state
 
+'''
 if __name__ == '__main__':
     from modules.embedding import Embedding
     corpus = Corpus(CORPUS_FILE)
@@ -83,3 +81,4 @@ if __name__ == '__main__':
     print(final_hidden_state.shape)
     print(encoder_outputs)
     print(final_hidden_state)
+'''
