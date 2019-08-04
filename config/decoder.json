@@ -2,8 +2,8 @@
   "max_decoding_steps": 50,
   "attention_mechanism": "luong",
   "rnn_type": "GRU",
-  "hidden_size": 256,
-  "num_layers": 3,
+  "hidden_size": 500,
+  "num_layers": 2,
   "rnn_bias": true,
   "rnn_dropout_enabled": true,
   "rnn_dropout_probability": 0.1

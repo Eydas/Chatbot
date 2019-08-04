@@ -42,7 +42,7 @@ class Decoder(nn.Module):
 
         mlp_input_size = {
             'bahdanau': self._embedding.embedding_size + self._config.hidden_size + self._context_size,
-            'luong': self._embedding.embedding_size + self._context_size
+            'luong': self._config.hidden_size + self._context_size
         }[self._config.attention_mechanism]
 
         self._rnn = Decoder.RNN_FACTORY[self._config.rnn_type](

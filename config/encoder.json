@@ -1,8 +1,8 @@
 {
   "rnn_type": "GRU",
   "bidirectional": true,
-  "num_layers": 3,
-  "hidden_size": 256,
+  "num_layers": 2,
+  "hidden_size": 500,
   "rnn_bias": true,
   "dropout_enabled": true,
   "dropout_probability": 0.1

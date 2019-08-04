@@ -1,6 +1,6 @@
 {
   "score": "dot",
-  "context_size": 256,
+  "context_size": 500,
   "project_query": false,
   "project_keys": false,
   "project_values": false

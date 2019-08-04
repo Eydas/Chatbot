@@ -39,7 +39,6 @@ class Train:
 
 
     def train(self, num_steps, save_num_steps, save_folder = './data/models/train_dev'):
-        stop_training = False
 
         if self._global_step < 0:
             self._global_step = 0
@@ -48,6 +47,8 @@ class Train:
                          'Num training steps = {}'.format(self._global_step, num_steps))
             return
 
+        stop_training = False
+
         while not stop_training:
             for input_seqs, input_lengths, target_seqs, masks in self._data_loader:
                 self.train_step(input_seqs, input_lengths, target_seqs, masks)
@@ -55,11 +56,15 @@ class Train:
 
                 if self._global_step % save_num_steps == 0:
                     self.save_checkpoint(save_folder)
+                    just_saved = True
+                else:
+                    just_saved = False
 
                 if self._global_step >= num_steps:
                     stop_training = True
                     logging.info('Finished training at step {}'.format(self._global_step))
-                    self.save_checkpoint(save_folder)
+                    if not just_saved:
+                        self.save_checkpoint(save_folder)
                     break
 
 
@@ -94,8 +99,8 @@ class Train:
 if __name__ == "__main__":
     from data_loading.corpus_loader import CORPUS_FILE
     corpus_filepath = path.join('./data/corpus', CORPUS_FILE)
-    save_folder = './data/models/train_dev'
-    #train_obj = Train("train_dev", CorpusDataset(corpus_filepath))
-    #train_obj.train(num_steps = 15, save_num_steps = 10, save_folder = save_folder)
-    train_obj = Train.load_from_checkpoint(path.join(save_folder, 'checkpoint-20.tar'), CorpusDataset(corpus_filepath))
-    train_obj.train(num_steps= 20, save_num_steps= 10, save_folder = save_folder)
+    save_folder = '/media/Work/data/Chatbot/models/train_dev'
+    train_obj = Train("train_dev", CorpusDataset(corpus_filepath))
+    train_obj.train(num_steps = 4000, save_num_steps = 500, save_folder = save_folder)
+    #train_obj = Train.load_from_checkpoint(path.join(save_folder, 'checkpoint-20.tar'), CorpusDataset(corpus_filepath))
+    #train_obj.train(num_steps= 20, save_num_steps= 10, save_folder = save_folder)
